@@ -1,0 +1,44 @@
+name: Build standalone macOS installers
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            label: Intel
+          - runner: macos-15
+            label: Apple-Silicon
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-build.txt
+      - name: Restore prototype Python source
+        run: |
+          python3 - <<'PY'
+          import base64, zlib, pathlib
+          p = pathlib.Path("src/app.py.zlib.b64")
+          dst = pathlib.Path("src/app.py")
+          dst.write_bytes(zlib.decompress(base64.b64decode(p.read_text().strip())))
+          import py_compile
+          py_compile.compile(str(dst), doraise=True)
+          print("Validated application source:", dst.stat().st_size, "bytes")
+          PY
+      - name: Bundle macOS app and build PKG
+        run: bash scripts/build-mac.sh
+      - name: Upload standalone installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-Restore-Studio-${{ matrix.label }}
+          path: Image-Restore-Studio-*.pkg
+          if-no-files-found: error
