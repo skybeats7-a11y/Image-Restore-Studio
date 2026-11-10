@@ -1,4 +1,3 @@
-Pillow==11.3.0
-numpy==1.26.4
-opencv-python-headless==4.10.0.84
-pyinstaller==6.16.0
+# Legacy-oriented Intel build; intentionally avoids NumPy/OpenCV wheels that require newer macOS.
+Pillow==9.5.0
+pyinstaller==5.13.2
