@@ -2,11 +2,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 APP_NAME="Image Restore Studio"
-VERSION="0.4.0"
+VERSION="0.5.0"
 export MACOSX_DEPLOYMENT_TARGET=10.13
 python3 -m pip install -r requirements-build.txt
 python3 scripts/prepare-legacy.py
 python3 scripts/upgrade-v04.py
+python3 scripts/upgrade-v05.py
+python3 -m py_compile src/cloud_premium.py src/app.py
 python3 src/entry.py --self-test
 
 # Official Real-ESRGAN portable Mac build including trained AI models.
@@ -31,6 +33,7 @@ python3 -m PyInstaller --noconfirm --clean --windowed --onedir \
   --name "$APP_NAME" \
   --osx-bundle-identifier uk.co.imagerestorestudio.app \
   --hidden-import=PIL._tkinter_finder \
+  --hidden-import=cloud_premium \
   --collect-submodules PIL \
   --target-architecture x86_64 \
   src/entry.py
